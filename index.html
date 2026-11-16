@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#8f3530" />
+    <meta name="description" content="内购商品选购、数量管理与个人 Excel 清单导出" />
+    <title>minibala内购</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="#top" aria-label="返回商品列表顶部">
+          <span class="brand-mark">内</span>
+          <span>
+            <strong>minibala内购</strong>
+            <small>个人选购 · 在线提交 / 导出 Excel</small>
+          </span>
+        </a>
+        <button id="cartButton" class="cart-button" type="button" aria-controls="cartPanel" aria-expanded="false">
+          选购清单
+          <span id="cartBadge" class="cart-badge">0</span>
+        </button>
+      </div>
+    </header>
+
+    <div id="campaignBanner" class="campaign-banner" role="status" aria-live="polite" hidden>
+      <strong id="campaignStatus">本次内购进行中</strong>
+      <span id="campaignTime"></span>
+    </div>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="pageTitle">
+        <div class="hero-copy">
+          <p class="eyebrow">本次内购</p>
+          <h1 id="pageTitle">选好规格，导出自己的清单</h1>
+          <p>无需注册或付款。挑选商品后填写收货信息，导出 Excel 发给组织者即可。</p>
+        </div>
+        <ol class="steps" aria-label="选购流程">
+          <li><span>1</span>搜索商品</li>
+          <li><span>2</span>选择颜色尺码</li>
+          <li><span>3</span>导出清单</li>
+        </ol>
+      </section>
+
+      <section class="catalog-section" aria-labelledby="catalogTitle">
+        <div class="catalog-heading">
+          <div>
+            <p class="eyebrow">商品清单</p>
+            <h2 id="catalogTitle">可选商品</h2>
+            <p id="catalogMeta" class="catalog-meta" aria-live="polite">正在读取商品…</p>
+          </div>
+          <div class="search-wrap">
+            <label for="searchInput">搜索名称或款号</label>
+            <div class="search-box">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg>
+              <input id="searchInput" type="search" placeholder="例如：连衣裙、230224" autocomplete="off" />
+              <button id="clearSearch" type="button" aria-label="清空搜索" hidden>清空</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-row">
+          <div id="categoryFilters" class="chips" aria-label="按名称筛选"></div>
+          <label class="sort-control">
+            排序
+            <select id="sortSelect">
+              <option value="default">原表顺序</option>
+              <option value="priceAsc">价格从低到高</option>
+              <option value="priceDesc">价格从高到低</option>
+              <option value="name">名称</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="productGrid" class="product-grid" aria-live="polite"></div>
+        <div id="emptyState" class="empty-state" hidden>
+          <h3>没有找到商品</h3>
+          <p>换个名称或款号试试。</p>
+          <button id="resetFilters" type="button">清除筛选</button>
+        </div>
+        <nav id="pagination" class="pagination" aria-label="商品分页"></nav>
+      </section>
+    </main>
+
+    <div id="modalBackdrop" class="backdrop" hidden></div>
+
+    <section id="productModal" class="modal product-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
+      <button class="icon-button modal-close" type="button" data-close-modal aria-label="关闭">×</button>
+      <div id="modalProduct" class="modal-product"></div>
+    </section>
+
+    <aside id="cartPanel" class="cart-panel" aria-labelledby="cartTitle" aria-hidden="true">
+      <div class="cart-header">
+        <div>
+          <p class="eyebrow">个人选购</p>
+          <h2 id="cartTitle">选购清单</h2>
+        </div>
+        <button id="closeCart" class="icon-button" type="button" aria-label="关闭选购清单">×</button>
+      </div>
+      <div id="cartSelection" class="cart-selection" hidden>
+        <label><input id="selectAllCart" type="checkbox" /> 全选</label>
+        <span>勾选的商品才会提交或导出</span>
+      </div>
+      <div id="cartItems" class="cart-items"></div>
+      <div id="cartEmpty" class="cart-empty">
+        <p>清单还是空的</p>
+        <span>从商品卡片中选择颜色、尺码和数量。</span>
+      </div>
+      <div class="cart-footer">
+        <div class="cart-totals">
+          <span>已选 <strong id="totalQty">0</strong> 件 <small>（购物车 <b id="cartQty">0</b> 件）</small></span>
+          <span>合计 <strong id="totalAmount">¥0</strong></span>
+        </div>
+        <div class="address-book">
+          <label for="addressSelect">已保存地址</label>
+          <select id="addressSelect">
+            <option value="">选择地址</option>
+          </select>
+          <div class="address-book-actions">
+            <button id="saveAddressButton" type="button">保存当前地址</button>
+            <button id="deleteAddressButton" type="button" disabled>删除所选地址</button>
+          </div>
+        </div>
+        <div class="shipping-fields">
+          <label class="name-field wide" for="buyerName">
+            收件人 / 选购人
+            <input id="buyerName" type="text" maxlength="30" placeholder="请填写姓名" autocomplete="name" />
+          </label>
+          <label class="name-field wide" for="buyerPhone">
+            电话
+            <input id="buyerPhone" type="tel" maxlength="30" placeholder="请填写联系电话" autocomplete="tel" inputmode="tel" />
+          </label>
+          <label class="name-field" for="buyerProvince">
+            省
+            <input id="buyerProvince" type="text" maxlength="20" placeholder="直辖市填 0" autocomplete="address-level1" />
+          </label>
+          <label class="name-field" for="buyerCity">
+            市
+            <input id="buyerCity" type="text" maxlength="20" placeholder="城市" autocomplete="address-level2" />
+          </label>
+          <label class="name-field" for="buyerDistrict">
+            区
+            <input id="buyerDistrict" type="text" maxlength="20" placeholder="区/县" autocomplete="address-level3" />
+          </label>
+          <label class="name-field wide" for="buyerAddress">
+            详细地址
+            <input id="buyerAddress" type="text" maxlength="120" placeholder="街道、门牌号等" autocomplete="street-address" />
+          </label>
+        </div>
+        <p class="address-hint">上海、北京等直辖市请在“省”一栏填写 0。</p>
+        <p id="exportError" class="form-error" role="alert"></p>
+        <button id="submitOrderButton" class="primary-button" type="button" hidden>提交订单给组织者</button>
+        <button id="exportButton" class="primary-button" type="button">导出 Excel 选购清单</button>
+        <p id="orderSuccess" class="order-success" role="status"></p>
+        <p class="privacy-note">购物车和地址簿只保存在当前浏览器，不会上传；导出后请把 Excel 发送给组织者。</p>
+      </div>
+    </aside>
+
+    <div class="mobile-summary" aria-live="polite">
+      <button id="mobileCartButton" type="button">
+        <span><strong id="mobileQty">0</strong> 件</span>
+        <span id="mobileAmount">¥0</span>
+        <b>查看清单</b>
+      </button>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="vendor/jszip.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
