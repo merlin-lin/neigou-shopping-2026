@@ -4,11 +4,13 @@
   const STORAGE_KEY = "neigou-cart-v1";
   const SHIPPING_KEY = "neigou-shipping-v2";
   const ADDRESS_BOOK_KEY = "neigou-address-book-v1";
+  const ORDER_HISTORY_KEY = "neigou-order-history-v1";
   const PAGE_SIZE = 24;
   const state = {
     items: [],
     filtered: [],
     cart: loadJson(STORAGE_KEY, {}),
+    orderHistory: loadJson(ORDER_HISTORY_KEY, []),
     query: "",
     category: "全部",
     sort: "default",
@@ -36,8 +38,14 @@
     modalProduct: $("#modalProduct"),
     cartPanel: $("#cartPanel"),
     cartButton: $("#cartButton"),
+    historyButton: $("#historyButton"),
+    historyBadge: $("#historyBadge"),
     mobileCartButton: $("#mobileCartButton"),
     closeCart: $("#closeCart"),
+    historyModal: $("#historyModal"),
+    closeHistory: $("#closeHistory"),
+    historyItems: $("#historyItems"),
+    historyEmpty: $("#historyEmpty"),
     cartItems: $("#cartItems"),
     cartEmpty: $("#cartEmpty"),
     cartSelection: $("#cartSelection"),
@@ -70,6 +78,7 @@
   const shippingInputs = ["buyerName", "buyerPhone", "buyerProvince", "buyerCity", "buyerDistrict", "buyerAddress"];
   let savedAddresses = loadJson(ADDRESS_BOOK_KEY, []);
   if (!Array.isArray(savedAddresses)) savedAddresses = [];
+  if (!Array.isArray(state.orderHistory)) state.orderHistory = [];
   const savedShipping = loadJson(SHIPPING_KEY, {});
   shippingInputs.forEach((key) => {
     elements[key].value = savedShipping[key] || "";
@@ -317,6 +326,7 @@
     elements.productModal.hidden = false;
     elements.backdrop.hidden = false;
     document.body.style.overflow = "hidden";
+    pushOverlayHistory("product");
     setTimeout(() => elements.productModal.querySelector(".size-button")?.focus(), 0);
   }
 
@@ -357,7 +367,20 @@
       </div>`;
   }
 
-  function closeProduct() {
+  function pushOverlayHistory(type) {
+    if (window.history.state?.neigouOverlay === type) return;
+    try {
+      window.history.pushState({ ...(window.history.state || {}), neigouOverlay: type }, "", `#${type}`);
+    } catch (_) {
+      // file:// previews and privacy-focused browsers may restrict history updates.
+    }
+  }
+
+  function closeProduct(fromHistory = false) {
+    if (!fromHistory && window.history.state?.neigouOverlay === "product") {
+      window.history.back();
+      return;
+    }
     elements.productModal.hidden = true;
     state.selectedItem = null;
     closeBackdropIfUnused();
@@ -369,10 +392,33 @@
     elements.cartButton.setAttribute("aria-expanded", "true");
     elements.backdrop.hidden = false;
     document.body.style.overflow = "hidden";
+    pushOverlayHistory("cart");
     setTimeout(() => elements.closeCart.focus(), 0);
   }
 
-  function closeCart() {
+  function openHistory() {
+    renderOrderHistory();
+    elements.historyModal.hidden = false;
+    elements.backdrop.hidden = false;
+    document.body.style.overflow = "hidden";
+    pushOverlayHistory("history");
+    setTimeout(() => elements.closeHistory.focus(), 0);
+  }
+
+  function closeHistory(fromHistory = false) {
+    if (!fromHistory && window.history.state?.neigouOverlay === "history") {
+      window.history.back();
+      return;
+    }
+    elements.historyModal.hidden = true;
+    closeBackdropIfUnused();
+  }
+
+  function closeCart(fromHistory = false) {
+    if (!fromHistory && window.history.state?.neigouOverlay === "cart") {
+      window.history.back();
+      return;
+    }
     elements.cartPanel.classList.remove("open");
     elements.cartPanel.setAttribute("aria-hidden", "true");
     elements.cartButton.setAttribute("aria-expanded", "false");
@@ -382,7 +428,8 @@
   function closeBackdropIfUnused() {
     const cartOpen = elements.cartPanel.classList.contains("open");
     const modalOpen = !elements.productModal.hidden;
-    if (!cartOpen && !modalOpen) {
+    const historyOpen = !elements.historyModal.hidden;
+    if (!cartOpen && !modalOpen && !historyOpen) {
       elements.backdrop.hidden = true;
       document.body.style.overflow = "";
     }
@@ -459,6 +506,50 @@
     elements.mobileAmount.textContent = money(totalAmount);
   }
 
+  function saveOrderHistoryRecord(type, shipping, lines, orderId = "") {
+    const record = {
+      id: orderId || `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      type,
+      createdAt: new Date().toISOString(),
+      campaignId: state.campaign?.id || "",
+      buyerName: shipping.buyerName,
+      totalQty: lines.reduce((sum, line) => sum + Number(line.qty), 0),
+      totalAmount: lines.reduce((sum, line) => sum + Number(line.price) * Number(line.qty), 0),
+      lines: lines.map(({ sku, style, name, color, size, price, qty }) => ({ sku, style, name, color, size, price, qty })),
+    };
+    state.orderHistory.unshift(record);
+    state.orderHistory = state.orderHistory.slice(0, 30);
+    localStorage.setItem(ORDER_HISTORY_KEY, JSON.stringify(state.orderHistory));
+    renderOrderHistory();
+  }
+
+  function renderOrderHistory() {
+    const records = state.orderHistory;
+    elements.historyBadge.textContent = records.length;
+    elements.historyEmpty.hidden = records.length > 0;
+    elements.historyItems.hidden = records.length === 0;
+    elements.historyItems.innerHTML = records.map((record) => {
+      const createdAt = new Date(record.createdAt);
+      const time = Number.isFinite(createdAt.getTime())
+        ? createdAt.toLocaleString("zh-CN", { hour12: false })
+        : "时间未知";
+      const source = record.type === "online" ? "在线提交" : "Excel 已导出";
+      return `<article class="history-record">
+        <div class="history-record-head">
+          <div><strong>${escapeHtml(record.buyerName || "未填写姓名")}</strong><span>${escapeHtml(time)} · ${source}</span></div>
+          <div><b>${Number(record.totalQty) || 0} 件</b><strong>${money(record.totalAmount || 0)}</strong></div>
+        </div>
+        <details>
+          <summary>查看 ${record.lines?.length || 0} 个商品规格</summary>
+          <div class="history-lines">${(record.lines || []).map((line) => `<div>
+            <span><b>${escapeHtml(line.name)}</b> · ${escapeHtml(line.color)} · ${escapeHtml(line.size)}</span>
+            <span>${escapeHtml(line.sku)} · ${line.qty} 件 · ${money(Number(line.price) * Number(line.qty))}</span>
+          </div>`).join("")}</div>
+        </details>
+      </article>`;
+    }).join("");
+  }
+
   function selectedLines() {
     return Object.values(state.cart).filter((line) => line.selected !== false);
   }
@@ -506,9 +597,29 @@
     showToast.timer = setTimeout(() => elements.toast.classList.remove("show"), 2200);
   }
 
+  let exportLibraryPromise;
+  function ensureExportLibrary() {
+    if (window.JSZip) return Promise.resolve();
+    if (exportLibraryPromise) return exportLibraryPromise;
+    exportLibraryPromise = new Promise((resolve, reject) => {
+      const source = document.getElementById("jszipLoader")?.dataset.src;
+      if (!source) {
+        reject(new Error("导出组件地址缺失"));
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = source;
+      script.onload = () => window.JSZip ? resolve() : reject(new Error("导出组件未正确加载"));
+      script.onerror = () => reject(new Error("导出组件加载失败，请检查网络后重试"));
+      document.head.appendChild(script);
+    });
+    return exportLibraryPromise;
+  }
+
   async function exportExcel() {
     const shipping = shippingValues();
     const lines = selectedLines();
+    const selectedKeys = Object.entries(state.cart).filter(([, line]) => line.selected !== false).map(([key]) => key);
     elements.exportError.textContent = "";
     elements.orderSuccess.textContent = "";
     if (state.closed) {
@@ -533,14 +644,11 @@
       elements[missing[0]].focus();
       return;
     }
-    if (!window.JSZip) {
-      elements.exportError.textContent = "导出组件加载失败，请刷新页面重试。";
-      return;
-    }
     saveShipping();
     elements.exportButton.disabled = true;
     elements.exportButton.textContent = "正在生成…";
     try {
+      await ensureExportLibrary();
       const blob = await buildXlsx(shipping, lines);
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -552,7 +660,12 @@
       link.click();
       link.remove();
       setTimeout(() => URL.revokeObjectURL(url), 3000);
-      showToast("Excel 选购清单已导出");
+      saveOrderHistoryRecord("excel", shipping, lines);
+      selectedKeys.forEach((key) => { delete state.cart[key]; });
+      saveCart();
+      renderCart();
+      elements.orderSuccess.textContent = "Excel 已导出，本次勾选商品已从购物车移除。";
+      showToast("已导出，勾选商品已清除");
     } catch (error) {
       elements.exportError.textContent = `导出失败：${error.message}`;
     } finally {
@@ -605,6 +718,7 @@
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.message || "提交失败");
+      saveOrderHistoryRecord("online", shipping, lines, payload.orderId);
       selectedKeys.forEach((key) => { delete state.cart[key]; });
       saveCart();
       renderCart();
@@ -798,11 +912,19 @@
     renderCart();
   });
   elements.cartButton.addEventListener("click", openCart);
+  elements.historyButton.addEventListener("click", openHistory);
   elements.mobileCartButton.addEventListener("click", openCart);
   elements.closeCart.addEventListener("click", closeCart);
+  elements.closeHistory.addEventListener("click", closeHistory);
   elements.backdrop.addEventListener("click", () => {
     closeProduct();
     closeCart();
+    closeHistory();
+  });
+  window.addEventListener("popstate", () => {
+    if (!elements.productModal.hidden) closeProduct(true);
+    if (elements.cartPanel.classList.contains("open")) closeCart(true);
+    if (!elements.historyModal.hidden) closeHistory(true);
   });
   shippingInputs.forEach((key) => {
     elements[key].addEventListener("input", () => {
@@ -822,9 +944,11 @@
     if (event.key === "Escape") {
       closeProduct();
       closeCart();
+      closeHistory();
     }
   });
 
   renderAddressBook();
+  renderOrderHistory();
   init();
 })();

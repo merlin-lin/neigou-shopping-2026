@@ -18,10 +18,15 @@
             <small>个人选购 · 在线提交 / 导出 Excel</small>
           </span>
         </a>
-        <button id="cartButton" class="cart-button" type="button" aria-controls="cartPanel" aria-expanded="false">
-          选购清单
-          <span id="cartBadge" class="cart-badge">0</span>
-        </button>
+        <div class="header-actions">
+          <button id="historyButton" class="history-button" type="button" aria-controls="historyModal">
+            已提交记录 <span id="historyBadge">0</span>
+          </button>
+          <button id="cartButton" class="cart-button" type="button" aria-controls="cartPanel" aria-expanded="false">
+            选购清单
+            <span id="cartBadge" class="cart-badge">0</span>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -87,8 +92,24 @@
     <div id="modalBackdrop" class="backdrop" hidden></div>
 
     <section id="productModal" class="modal product-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
-      <button class="icon-button modal-close" type="button" data-close-modal aria-label="关闭">×</button>
+      <button class="back-button modal-close" type="button" data-close-modal aria-label="返回商品列表"><span aria-hidden="true">←</span> 返回商品列表</button>
       <div id="modalProduct" class="modal-product"></div>
+    </section>
+
+    <section id="historyModal" class="modal history-modal" role="dialog" aria-modal="true" aria-labelledby="historyTitle" hidden>
+      <div class="history-header">
+        <div>
+          <p class="eyebrow">当前浏览器</p>
+          <h2 id="historyTitle">已提交商品记录</h2>
+        </div>
+        <button id="closeHistory" class="back-button" type="button" aria-label="返回商品列表"><span aria-hidden="true">←</span> 返回商品列表</button>
+      </div>
+      <p class="history-note">记录仅保存在这台设备的当前浏览器中，换设备或清除浏览器数据后不会显示。</p>
+      <div id="historyItems" class="history-items"></div>
+      <div id="historyEmpty" class="history-empty">
+        <strong>还没有提交记录</strong>
+        <span>成功导出 Excel 后会自动记录。</span>
+      </div>
     </section>
 
     <aside id="cartPanel" class="cart-panel" aria-labelledby="cartTitle" aria-hidden="true">
@@ -97,7 +118,7 @@
           <p class="eyebrow">个人选购</p>
           <h2 id="cartTitle">选购清单</h2>
         </div>
-        <button id="closeCart" class="icon-button" type="button" aria-label="关闭选购清单">×</button>
+        <button id="closeCart" class="back-button" type="button" aria-label="继续选购"><span aria-hidden="true">←</span> 继续选购</button>
       </div>
       <div id="cartSelection" class="cart-selection" hidden>
         <label><input id="selectAllCart" type="checkbox" /> 全选</label>
@@ -168,7 +189,7 @@
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-    <script src="vendor/jszip.min.js"></script>
+    <script id="jszipLoader" data-src="vendor/jszip.min.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
