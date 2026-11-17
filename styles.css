@@ -292,6 +292,9 @@ main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
   backdrop-filter: blur(8px);
   font-size: 11px;
 }
+.product-variants { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: #fff9f5; }
+.product-variants span { display: inline-flex; align-items: baseline; gap: 4px; border-radius: 999px; padding: 4px 8px; color: var(--muted); background: var(--accent-soft); font-size: 10px; }
+.product-variants b { color: var(--accent); font-size: 11px; }
 .product-body { padding: 16px; }
 .product-topline { display: flex; align-items: start; justify-content: space-between; gap: 10px; }
 .product-name { margin: 0; font-size: 16px; line-height: 1.35; }
@@ -554,6 +557,9 @@ main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
   .product-actions { margin-top: 11px; }
   .select-button, .detail-link { padding: 9px 8px; font-size: 12px; }
   .stock-pill { bottom: 7px; right: 7px; }
+  .product-variants { gap: 5px; padding: 9px 10px; }
+  .product-variants span { padding: 3px 6px; font-size: 9px; }
+  .product-variants b { font-size: 10px; }
   .modal { width: 100%; max-height: 92dvh; top: auto; bottom: 0; transform: translateX(-50%); border-radius: 26px 26px 0 0; }
   .modal-product { display: block; }
   .modal-visual { min-height: 0; aspect-ratio: 1.45; }

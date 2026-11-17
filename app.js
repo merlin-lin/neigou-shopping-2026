@@ -271,12 +271,16 @@
     const image = item.image
       ? `<img class="product-image" src="${escapeHtml(item.image)}" alt="${escapeHtml(`${item.name} ${item.color}`)}" loading="lazy" decoding="async" />`
       : `<div class="product-image-placeholder">暂无图片</div>`;
+    const variants = item.sizes
+      .map((size) => `<span><b>${escapeHtml(size.size)}</b>${stockLimit(size.stock) === null ? "可选" : `库存 ${escapeHtml(size.stock)}`}</span>`)
+      .join("");
     return `
       <article class="product-card">
         <div class="product-image-wrap">
           ${image}
           <span class="stock-pill">${item.sizes.length} 个尺码</span>
         </div>
+        <div class="product-variants" aria-label="尺码和库存">${variants}</div>
         <div class="product-body">
           <div class="product-topline">
             <h3 class="product-name">${escapeHtml(item.name)}</h3>
