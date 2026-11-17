@@ -72,6 +72,7 @@
     campaignBanner: $("#campaignBanner"),
     campaignStatus: $("#campaignStatus"),
     campaignTime: $("#campaignTime"),
+    copyWechatButton: $("#copyWechatButton"),
     toast: $("#toast"),
   };
 
@@ -596,6 +597,28 @@
     showToast.timer = setTimeout(() => elements.toast.classList.remove("show"), 2200);
   }
 
+  async function copyWechat() {
+    const wechat = "shishenmelin";
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(wechat);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = wechat;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        const copied = document.execCommand("copy");
+        textarea.remove();
+        if (!copied) throw new Error("copy failed");
+      }
+      showToast("微信号已复制");
+    } catch (_) {
+      showToast("复制失败，请手动复制 shishenmelin");
+    }
+  }
+
   let exportLibraryPromise;
   function ensureExportLibrary() {
     if (window.JSZip) return Promise.resolve();
@@ -938,6 +961,7 @@
   elements.saveAddressButton.addEventListener("click", saveCurrentAddress);
   elements.deleteAddressButton.addEventListener("click", deleteSelectedAddress);
   elements.exportButton.addEventListener("click", exportExcel);
+  elements.copyWechatButton.addEventListener("click", copyWechat);
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeProduct();

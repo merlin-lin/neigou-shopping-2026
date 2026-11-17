@@ -73,13 +73,8 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .brand-mark {
   width: 38px;
   height: 38px;
-  display: grid;
-  place-items: center;
   border-radius: 12px;
-  color: #fff;
-  background: var(--accent);
-  font-family: "Songti SC", SimSun, serif;
-  font-size: 20px;
+  object-fit: cover;
 }
 .brand strong { display: block; font-size: 17px; letter-spacing: .05em; }
 .brand small { display: block; margin-top: 1px; color: var(--muted); font-size: 11px; }
@@ -181,6 +176,45 @@ main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
   font-size: 11px;
   font-weight: 800;
 }
+
+.order-tips {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 24px;
+  border: 1px solid #dfc7bf;
+  border-radius: 18px;
+  padding: 15px 18px;
+  background: #fff7f4;
+}
+.exclusive-tip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 5px 13px 5px 5px;
+  color: #fff;
+  background: var(--accent);
+  box-shadow: 0 6px 18px rgba(143, 53, 48, .2);
+  font-size: 14px;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.exclusive-tip img { width: 30px; height: 30px; border: 2px solid rgba(255, 255, 255, .8); border-radius: 50%; object-fit: cover; }
+.wechat-tip { display: flex; align-items: center; gap: 10px; color: #5b4538; font-size: 14px; }
+.wechat-tip b { color: var(--ink); }
+.wechat-tip button {
+  min-height: 36px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 7px 13px;
+  color: var(--accent);
+  background: #fff;
+  cursor: pointer;
+  font-weight: 800;
+}
+.wechat-tip button:hover { color: #fff; background: var(--accent); }
 
 .catalog-section { padding: 58px 0 130px; }
 .catalog-heading {
@@ -501,6 +535,10 @@ main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
   .steps { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 0; gap: 8px; }
   .steps li { min-height: 0; display: block; padding: 11px 8px; border: 1px solid var(--line); border-radius: 12px; font-size: 11px; }
   .steps span { margin-bottom: 7px; }
+  .order-tips { align-items: flex-start; flex-direction: column; gap: 12px; margin-top: 18px; padding: 14px; }
+  .wechat-tip { width: 100%; justify-content: space-between; gap: 8px; font-size: 13px; }
+  .wechat-tip span { min-width: 0; }
+  .wechat-tip button { flex: none; }
   .catalog-section { padding: 40px 0 112px; }
   .catalog-heading { grid-template-columns: 1fr; gap: 20px; }
   .filter-row { align-items: start; flex-direction: column; }

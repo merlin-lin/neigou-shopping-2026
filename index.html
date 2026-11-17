@@ -6,13 +6,13 @@
     <meta name="theme-color" content="#8f3530" />
     <meta name="description" content="内购商品选购、数量管理与个人 Excel 清单导出" />
     <title>minibala内购</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=20261117-2" />
   </head>
   <body>
     <header class="site-header">
       <div class="header-inner">
         <a class="brand" href="#top" aria-label="返回商品列表顶部">
-          <span class="brand-mark">内</span>
+          <img class="brand-mark" src="images/mumu-avatar.jpg" alt="" />
           <span>
             <strong>minibala内购</strong>
             <small>个人选购 · 在线提交 / 导出 Excel</small>
@@ -48,6 +48,14 @@
           <li><span>3</span>导出清单</li>
         </ol>
       </section>
+
+      <aside class="order-tips" aria-label="内购提示">
+        <strong class="exclusive-tip"><img src="images/mumu-avatar.jpg" alt="" />木木专属内购链接</strong>
+        <div class="wechat-tip">
+          <span>下单请加群主微信：<b>shishenmelin</b></span>
+          <button id="copyWechatButton" type="button" aria-label="复制群主微信号 shishenmelin">复制</button>
+        </div>
+      </aside>
 
       <section class="catalog-section" aria-labelledby="catalogTitle">
         <div class="catalog-heading">
@@ -189,6 +197,6 @@
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
     <script id="jszipLoader" data-src="vendor/jszip.min.js"></script>
-    <script src="app.js?v=20261117-3"></script>
+    <script src="app.js?v=20261117-4"></script>
   </body>
 </html>
