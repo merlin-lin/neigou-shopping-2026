@@ -67,7 +67,6 @@
     deleteAddressButton: $("#deleteAddressButton"),
     exportError: $("#exportError"),
     exportButton: $("#exportButton"),
-    submitOrderButton: $("#submitOrderButton"),
     privacyNote: $("#privacyNote"),
     orderSuccess: $("#orderSuccess"),
     campaignBanner: $("#campaignBanner"),
@@ -564,11 +563,6 @@
 
   function applyCampaignState() {
     const campaign = state.campaign;
-    const hasOrderEndpoint = Boolean(campaign?.orderEndpoint);
-    elements.submitOrderButton.hidden = !hasOrderEndpoint;
-    elements.privacyNote.textContent = hasOrderEndpoint
-      ? "购物车和地址簿保存在当前浏览器；只有点击“提交订单”后，所勾选的商品与收货信息才会发送给组织者。"
-      : "购物车和地址簿保存在当前浏览器；导出 Excel 后请发送给组织者。";
     if (!campaign?.endsAt) {
       elements.campaignBanner.hidden = true;
       return;
@@ -582,7 +576,6 @@
     elements.campaignStatus.textContent = now >= end ? "本次内购已结束" : state.closed ? "本次内购尚未开始" : "本次内购进行中";
     elements.campaignTime.textContent = `截止 ${end.toLocaleString("zh-CN", { hour12: false })}`;
     elements.exportButton.disabled = state.closed;
-    elements.submitOrderButton.disabled = state.closed || !hasOrderEndpoint;
     renderProducts();
     if (!elements.productModal.hidden) renderProductModal();
   }
@@ -945,7 +938,6 @@
   elements.saveAddressButton.addEventListener("click", saveCurrentAddress);
   elements.deleteAddressButton.addEventListener("click", deleteSelectedAddress);
   elements.exportButton.addEventListener("click", exportExcel);
-  elements.submitOrderButton.addEventListener("click", submitOrder);
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeProduct();
