@@ -13,6 +13,7 @@
     orderHistory: loadJson(ORDER_HISTORY_KEY, []),
     query: "",
     category: "全部",
+    size: "",
     sort: "default",
     page: 1,
     selectedItem: null,
@@ -29,6 +30,7 @@
     search: $("#searchInput"),
     clearSearch: $("#clearSearch"),
     filters: $("#categoryFilters"),
+    size: $("#sizeSelect"),
     sort: $("#sortSelect"),
     empty: $("#emptyState"),
     reset: $("#resetFilters"),
@@ -239,14 +241,17 @@
     elements.filters.innerHTML = ["全部", ...top]
       .map((name) => `<button class="chip${name === state.category ? " active" : ""}" type="button" data-category="${escapeHtml(name)}">${escapeHtml(name)}</button>`)
       .join("");
+    const sizes = [...new Set(state.items.flatMap((item) => item.sizes.map((size) => String(size.size))))].sort((a, b) => a.localeCompare(b, "zh-CN", { numeric: true }));
+    elements.size.innerHTML = [`<option value="">全部尺码</option>`, ...sizes.map((size) => `<option value="${escapeHtml(size)}"${size === state.size ? " selected" : ""}>${escapeHtml(size)}</option>`)].join("");
   }
 
   function applyFilters() {
     const query = state.query.trim().toLocaleLowerCase("zh-CN");
     let result = state.items.filter((item) => {
       const categoryMatch = state.category === "全部" || item.name === state.category;
+      const sizeMatch = !state.size || item.sizes.some((size) => String(size.size) === state.size);
       const searchable = `${item.name} ${item.style} ${item.sku} ${item.color}`.toLocaleLowerCase("zh-CN");
-      return categoryMatch && (!query || searchable.includes(query));
+      return categoryMatch && sizeMatch && (!query || searchable.includes(query));
     });
     if (state.sort === "priceAsc") result.sort((a, b) => a.price - b.price || a.row - b.row);
     if (state.sort === "priceDesc") result.sort((a, b) => b.price - a.price || a.row - b.row);
@@ -874,6 +879,11 @@
     state.page = 1;
     applyFilters();
   });
+  elements.size.addEventListener("change", () => {
+    state.size = elements.size.value;
+    state.page = 1;
+    applyFilters();
+  });
   elements.grid.addEventListener("click", (event) => {
     const button = event.target.closest("[data-select-sku]");
     if (button) openProduct(button.dataset.selectSku);
@@ -889,6 +899,7 @@
   elements.reset.addEventListener("click", () => {
     state.query = "";
     state.category = "全部";
+    state.size = "";
     state.page = 1;
     elements.search.value = "";
     elements.clearSearch.hidden = true;

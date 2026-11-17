@@ -125,14 +125,17 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 
 main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
 .hero {
-  min-height: 330px;
   display: grid;
   grid-template-columns: 1.35fr .9fr;
-  align-items: end;
-  gap: 72px;
-  padding: 76px 0 62px;
-  border-bottom: 1px solid var(--line);
+  align-items: center;
+  gap: 18px 32px;
+  margin-top: 20px;
+  border: 1px solid #eadbd4;
+  border-radius: 20px;
+  padding: 18px 24px 20px;
+  background: linear-gradient(135deg, #fff9f5 0%, #f7e9e4 100%);
 }
+.hero .order-tips { grid-column: 1 / -1; }
 .eyebrow {
   margin: 0 0 8px;
   color: var(--accent);
@@ -142,32 +145,35 @@ main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
   text-transform: uppercase;
 }
 .hero h1 {
-  max-width: 720px;
+  max-width: 620px;
   margin: 0;
   font-family: "Songti SC", SimSun, serif;
-  font-size: clamp(38px, 5vw, 66px);
+  font-size: 26px;
   font-weight: 600;
   line-height: 1.08;
   letter-spacing: -.04em;
 }
-.hero-copy > p:last-child { max-width: 650px; margin: 22px 0 0; color: var(--muted); font-size: 17px; }
+.hero-copy > p:last-child { max-width: 580px; margin: 9px 0 0; color: var(--muted); font-size: 13px; }
 .steps {
   margin: 0;
-  padding: 0;
+  padding: 4px 12px;
   list-style: none;
-  border-top: 1px solid var(--ink);
+  border: 1px solid rgba(231, 222, 216, .9);
+  border-radius: 14px;
+  background: rgba(255, 253, 251, .78);
 }
 .steps li {
-  min-height: 58px;
+  min-height: 42px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   border-bottom: 1px solid var(--line);
-  font-size: 14px;
+  font-size: 12px;
 }
+.steps li:last-child { border-bottom: 0; }
 .steps span {
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   display: grid;
   place-items: center;
   border: 1px solid var(--line);
@@ -181,34 +187,32 @@ main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  margin-top: 24px;
-  border: 1px solid #dfc7bf;
-  border-radius: 18px;
-  padding: 15px 18px;
-  background: #fff7f4;
+  gap: 14px;
+  margin: 0;
+  border-bottom: 1px solid rgba(223, 199, 191, .8);
+  padding: 0 0 12px;
 }
 .exclusive-tip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   border-radius: 999px;
-  padding: 5px 13px 5px 5px;
+  padding: 4px 11px 4px 4px;
   color: #fff;
   background: var(--accent);
   box-shadow: 0 6px 18px rgba(143, 53, 48, .2);
-  font-size: 14px;
+  font-size: 12px;
   letter-spacing: .04em;
   white-space: nowrap;
 }
-.exclusive-tip img { width: 30px; height: 30px; border: 2px solid rgba(255, 255, 255, .8); border-radius: 50%; object-fit: cover; }
-.wechat-tip { display: flex; align-items: center; gap: 10px; color: #5b4538; font-size: 14px; }
+.exclusive-tip img { width: 26px; height: 26px; border: 2px solid rgba(255, 255, 255, .8); border-radius: 50%; object-fit: cover; }
+.wechat-tip { display: flex; align-items: center; gap: 8px; color: #5b4538; font-size: 12px; }
 .wechat-tip b { color: var(--ink); }
 .wechat-tip button {
-  min-height: 36px;
+  min-height: 30px;
   border: 1px solid var(--accent);
   border-radius: 10px;
-  padding: 7px 13px;
+  padding: 5px 10px;
   color: var(--accent);
   background: #fff;
   cursor: pointer;
@@ -259,6 +263,7 @@ main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
   font-size: 13px;
 }
 .chip:hover, .chip.active { border-color: var(--ink); color: #fff; background: var(--ink); }
+.filter-controls { display: flex; align-items: center; gap: 18px; }
 .sort-control { display: flex; align-items: center; gap: 8px; color: var(--muted); white-space: nowrap; font-size: 12px; }
 .sort-control select { border: 0; border-bottom: 1px solid var(--line); padding: 7px 23px 7px 4px; background: transparent; color: var(--ink); }
 
@@ -532,14 +537,14 @@ main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
   .history-button { min-height: 40px; padding: 7px 9px; font-size: 11px; }
   .history-button span { min-width: 19px; height: 19px; margin-left: 3px; font-size: 10px; }
   .cart-button { padding: 9px 10px 9px 13px; font-size: 13px; }
-  .hero { min-height: 0; grid-template-columns: 1fr; gap: 36px; padding: 48px 0 40px; }
-  .hero h1 { font-size: clamp(36px, 11vw, 52px); }
-  .hero-copy > p:last-child { font-size: 15px; }
-  .steps { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 0; gap: 8px; }
-  .steps li { min-height: 0; display: block; padding: 11px 8px; border: 1px solid var(--line); border-radius: 12px; font-size: 11px; }
-  .steps span { margin-bottom: 7px; }
-  .order-tips { align-items: flex-start; flex-direction: column; gap: 12px; margin-top: 18px; padding: 14px; }
-  .wechat-tip { width: 100%; justify-content: space-between; gap: 8px; font-size: 13px; }
+  .hero { grid-template-columns: 1fr; gap: 14px; margin-top: 14px; padding: 14px; border-radius: 18px; }
+  .hero h1 { font-size: 23px; }
+  .hero-copy > p:last-child { margin-top: 8px; font-size: 12px; }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0; border: 0; background: transparent; }
+  .steps li { min-height: 0; display: block; padding: 8px 7px; border: 1px solid var(--line); border-radius: 10px; font-size: 10px; }
+  .steps span { margin-bottom: 5px; }
+  .order-tips { align-items: center; flex-wrap: wrap; gap: 8px; padding-bottom: 10px; }
+  .wechat-tip { width: 100%; justify-content: space-between; gap: 8px; font-size: 11px; }
   .wechat-tip span { min-width: 0; }
   .wechat-tip button { flex: none; }
   .catalog-section { padding: 40px 0 112px; }
@@ -547,7 +552,7 @@ main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
   .filter-row { align-items: start; flex-direction: column; }
   .chips { flex-wrap: nowrap; width: calc(100vw - 28px); overflow-x: auto; padding: 0 14px 4px; margin-left: -14px; scrollbar-width: none; }
   .chip { flex: none; }
-  .sort-control { align-self: flex-end; }
+  .filter-controls { width: 100%; justify-content: flex-end; gap: 14px; }
   .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding-top: 20px; }
   .product-card { border-radius: 17px; }
   .product-body { padding: 12px; }

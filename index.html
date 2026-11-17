@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#8f3530" />
     <meta name="description" content="内购商品选购、数量管理与个人 Excel 清单导出" />
     <title>minibala内购</title>
-    <link rel="stylesheet" href="styles.css?v=20261117-3" />
+    <link rel="stylesheet" href="styles.css?v=20261117-7" />
   </head>
   <body>
     <header class="site-header">
@@ -37,8 +37,14 @@
 
     <main id="top">
       <section class="hero" aria-labelledby="pageTitle">
+        <aside class="order-tips" aria-label="内购提示">
+          <strong class="exclusive-tip"><img src="images/mumu-avatar.jpg" alt="" />木木专属内购链接</strong>
+          <div class="wechat-tip">
+            <span>下单请加群主微信：<b>shishenmelin</b></span>
+            <button id="copyWechatButton" type="button" aria-label="复制群主微信号 shishenmelin">复制</button>
+          </div>
+        </aside>
         <div class="hero-copy">
-          <p class="eyebrow">本次内购</p>
           <h1 id="pageTitle">选好规格，导出自己的清单</h1>
           <p>无需注册或付款。挑选商品后填写收货信息，导出 Excel 发给组织者。</p>
         </div>
@@ -48,14 +54,6 @@
           <li><span>3</span>导出清单</li>
         </ol>
       </section>
-
-      <aside class="order-tips" aria-label="内购提示">
-        <strong class="exclusive-tip"><img src="images/mumu-avatar.jpg" alt="" />木木专属内购链接</strong>
-        <div class="wechat-tip">
-          <span>下单请加群主微信：<b>shishenmelin</b></span>
-          <button id="copyWechatButton" type="button" aria-label="复制群主微信号 shishenmelin">复制</button>
-        </div>
-      </aside>
 
       <section class="catalog-section" aria-labelledby="catalogTitle">
         <div class="catalog-heading">
@@ -76,21 +74,27 @@
 
         <div class="filter-row">
           <div id="categoryFilters" class="chips" aria-label="按名称筛选"></div>
-          <label class="sort-control">
-            排序
-            <select id="sortSelect">
-              <option value="default">原表顺序</option>
-              <option value="priceAsc">价格从低到高</option>
-              <option value="priceDesc">价格从高到低</option>
-              <option value="name">名称</option>
-            </select>
-          </label>
+          <div class="filter-controls">
+            <label class="sort-control">
+              尺码
+              <select id="sizeSelect"><option value="">全部尺码</option></select>
+            </label>
+            <label class="sort-control">
+              排序
+              <select id="sortSelect">
+                <option value="default">原表顺序</option>
+                <option value="priceAsc">价格从低到高</option>
+                <option value="priceDesc">价格从高到低</option>
+                <option value="name">名称</option>
+              </select>
+            </label>
+          </div>
         </div>
 
         <div id="productGrid" class="product-grid" aria-live="polite"></div>
         <div id="emptyState" class="empty-state" hidden>
           <h3>没有找到商品</h3>
-          <p>换个名称或款号试试。</p>
+          <p>换个名称、款号或尺码试试。</p>
           <button id="resetFilters" type="button">清除筛选</button>
         </div>
         <nav id="pagination" class="pagination" aria-label="商品分页"></nav>
@@ -197,6 +201,6 @@
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
     <script id="jszipLoader" data-src="vendor/jszip.min.js"></script>
-    <script src="app.js?v=20261117-5"></script>
+    <script src="app.js?v=20261117-7"></script>
   </body>
 </html>
