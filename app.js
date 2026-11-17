@@ -13,6 +13,7 @@
     orderHistory: loadJson(ORDER_HISTORY_KEY, []),
     query: "",
     category: "全部",
+    gender: "",
     size: "",
     sort: "default",
     page: 1,
@@ -30,6 +31,7 @@
     search: $("#searchInput"),
     clearSearch: $("#clearSearch"),
     filters: $("#categoryFilters"),
+    gender: $("#genderSelect"),
     size: $("#sizeSelect"),
     sort: $("#sortSelect"),
     empty: $("#emptyState"),
@@ -241,6 +243,8 @@
     elements.filters.innerHTML = ["全部", ...top]
       .map((name) => `<button class="chip${name === state.category ? " active" : ""}" type="button" data-category="${escapeHtml(name)}">${escapeHtml(name)}</button>`)
       .join("");
+    const genders = [...new Set(state.items.map((item) => item.gender).filter(Boolean))];
+    elements.gender.innerHTML = [`<option value="">全部性别</option>`, ...genders.map((gender) => `<option value="${escapeHtml(gender)}"${gender === state.gender ? " selected" : ""}>${escapeHtml(gender)}</option>`)].join("");
     const sizes = [...new Set(state.items.flatMap((item) => item.sizes.map((size) => String(size.size))))].sort((a, b) => a.localeCompare(b, "zh-CN", { numeric: true }));
     elements.size.innerHTML = [`<option value="">全部尺码</option>`, ...sizes.map((size) => `<option value="${escapeHtml(size)}"${size === state.size ? " selected" : ""}>${escapeHtml(size)}</option>`)].join("");
   }
@@ -249,9 +253,10 @@
     const query = state.query.trim().toLocaleLowerCase("zh-CN");
     let result = state.items.filter((item) => {
       const categoryMatch = state.category === "全部" || item.name === state.category;
+      const genderMatch = !state.gender || item.gender === state.gender;
       const sizeMatch = !state.size || item.sizes.some((size) => String(size.size) === state.size);
       const searchable = `${item.name} ${item.style} ${item.sku} ${item.color}`.toLocaleLowerCase("zh-CN");
-      return categoryMatch && sizeMatch && (!query || searchable.includes(query));
+      return categoryMatch && genderMatch && sizeMatch && (!query || searchable.includes(query));
     });
     if (state.sort === "priceAsc") result.sort((a, b) => a.price - b.price || a.row - b.row);
     if (state.sort === "priceDesc") result.sort((a, b) => b.price - a.price || a.row - b.row);
@@ -884,6 +889,11 @@
     state.page = 1;
     applyFilters();
   });
+  elements.gender.addEventListener("change", () => {
+    state.gender = elements.gender.value;
+    state.page = 1;
+    applyFilters();
+  });
   elements.grid.addEventListener("click", (event) => {
     const button = event.target.closest("[data-select-sku]");
     if (button) openProduct(button.dataset.selectSku);
@@ -899,6 +909,7 @@
   elements.reset.addEventListener("click", () => {
     state.query = "";
     state.category = "全部";
+    state.gender = "";
     state.size = "";
     state.page = 1;
     elements.search.value = "";
