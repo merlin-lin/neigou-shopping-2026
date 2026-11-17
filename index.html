@@ -40,12 +40,12 @@
         <div class="hero-copy">
           <p class="eyebrow">本次内购</p>
           <h1 id="pageTitle">选好规格，导出自己的清单</h1>
-          <p>无需注册或付款。挑选商品后填写收货信息，可在线提交订单或导出 Excel。</p>
+          <p>无需注册或付款。挑选商品后填写收货信息，导出 Excel 发给组织者。</p>
         </div>
         <ol class="steps" aria-label="选购流程">
           <li><span>1</span>搜索商品</li>
           <li><span>2</span>选择颜色尺码</li>
-          <li><span>3</span>提交订单</li>
+          <li><span>3</span>导出清单</li>
         </ol>
       </section>
 
@@ -172,10 +172,10 @@
         </div>
         <p class="address-hint">上海、北京等直辖市请在“省”一栏填写 0。</p>
         <p id="exportError" class="form-error" role="alert"></p>
-        <button id="submitOrderButton" class="primary-button" type="button">提交订单给组织者</button>
+        <button id="submitOrderButton" class="primary-button" type="button" hidden>提交订单给组织者</button>
         <button id="exportButton" class="primary-button" type="button">导出 Excel 选购清单</button>
         <p id="orderSuccess" class="order-success" role="status"></p>
-        <p class="privacy-note">购物车和地址簿保存在当前浏览器；只有点击“提交订单”后，所勾选的商品与收货信息才会发送给组织者。</p>
+        <p id="privacyNote" class="privacy-note">购物车和地址簿保存在当前浏览器；导出 Excel 后请发送给组织者。</p>
       </div>
     </aside>
 
