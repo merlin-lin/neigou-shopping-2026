@@ -147,11 +147,9 @@ main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
 .hero h1 {
   max-width: 620px;
   margin: 0;
-  font-family: "Songti SC", SimSun, serif;
-  font-size: 26px;
-  font-weight: 600;
-  line-height: 1.08;
-  letter-spacing: -.04em;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.4;
 }
 .hero-copy > p:last-child { max-width: 580px; margin: 9px 0 0; color: var(--muted); font-size: 13px; }
 .steps {
@@ -227,7 +225,6 @@ main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
   gap: 42px;
   align-items: end;
 }
-.catalog-heading h2 { margin: 0; font-family: "Songti SC", SimSun, serif; font-size: 34px; font-weight: 600; }
 .catalog-meta { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
 .search-wrap label { display: block; margin: 0 0 7px; color: var(--muted); font-size: 12px; }
 .search-box {
@@ -253,17 +250,7 @@ main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
   padding-bottom: 18px;
   border-bottom: 1px solid var(--line);
 }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip {
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 7px 13px;
-  background: transparent;
-  cursor: pointer;
-  font-size: 13px;
-}
-.chip:hover, .chip.active { border-color: var(--ink); color: #fff; background: var(--ink); }
-.filter-controls { display: flex; align-items: center; gap: 18px; }
+.filter-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 14px 18px; }
 .sort-control { display: flex; align-items: center; gap: 8px; color: var(--muted); white-space: nowrap; font-size: 12px; }
 .sort-control select { border: 0; border-bottom: 1px solid var(--line); padding: 7px 23px 7px 4px; background: transparent; color: var(--ink); }
 
@@ -441,6 +428,9 @@ main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
 .history-record-head > div:last-child strong { color: var(--accent); font-size: 18px; }
 .history-record details { margin-top: 12px; }
 .history-record summary { color: var(--accent); cursor: pointer; font-size: 12px; font-weight: 750; }
+.history-record-actions { display: flex; justify-content: flex-end; margin-top: 12px; }
+.history-record-actions button { border: 1px solid var(--accent); border-radius: 10px; padding: 8px 12px; color: var(--accent); background: #fff; cursor: pointer; font-size: 12px; font-weight: 800; }
+.history-record-actions button:hover { color: #fff; background: var(--accent); }
 .history-lines { display: grid; gap: 8px; margin-top: 10px; }
 .history-lines > div { display: grid; gap: 2px; border-top: 1px dashed var(--line); padding-top: 8px; font-size: 11px; }
 .history-lines > div span:last-child { color: var(--muted); }
@@ -503,6 +493,11 @@ main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
 .address-hint { margin: -3px 0 11px; color: var(--muted); font-size: 11px; line-height: 1.45; }
 .form-error { min-height: 18px; margin: -4px 0 7px; color: #b12f2a; font-size: 12px; }
 .cart-footer > .primary-button + .primary-button { margin-top: 8px; color: var(--accent); background: #f7e9e4; }
+.export-fallback { margin-top: 10px; border: 1px solid #e6c1b9; border-radius: 12px; padding: 12px; background: #fff7f4; }
+.export-fallback strong { color: var(--accent); font-size: 13px; }
+.export-fallback p { margin: 5px 0 10px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.export-fallback .primary-button { display: block; padding: 11px 14px; text-align: center; }
+.export-fallback .primary-button + .primary-button { margin-top: 8px; color: var(--accent); background: #f1dfda; }
 .order-success { min-height: 18px; margin: 8px 0 0; color: #24663d; text-align: center; font-size: 12px; }
 .privacy-note { margin: 9px 0 0; color: var(--muted); text-align: center; font-size: 10px; }
 .mobile-summary { display: none; }
@@ -538,7 +533,7 @@ main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
   .history-button span { min-width: 19px; height: 19px; margin-left: 3px; font-size: 10px; }
   .cart-button { padding: 9px 10px 9px 13px; font-size: 13px; }
   .hero { grid-template-columns: 1fr; gap: 14px; margin-top: 14px; padding: 14px; border-radius: 18px; }
-  .hero h1 { font-size: 23px; }
+  .hero h1 { font-size: 18px; }
   .hero-copy > p:last-child { margin-top: 8px; font-size: 12px; }
   .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0; border: 0; background: transparent; }
   .steps li { min-height: 0; display: block; padding: 8px 7px; border: 1px solid var(--line); border-radius: 10px; font-size: 10px; }
@@ -550,9 +545,9 @@ main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
   .catalog-section { padding: 40px 0 112px; }
   .catalog-heading { grid-template-columns: 1fr; gap: 20px; }
   .filter-row { align-items: start; flex-direction: column; }
-  .chips { flex-wrap: nowrap; width: calc(100vw - 28px); overflow-x: auto; padding: 0 14px 4px; margin-left: -14px; scrollbar-width: none; }
-  .chip { flex: none; }
-  .filter-controls { width: 100%; justify-content: flex-end; gap: 14px; }
+  .filter-controls { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 18px; }
+  .sort-control { justify-content: space-between; }
+  .sort-control select { min-width: 0; }
   .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding-top: 20px; }
   .product-card { border-radius: 17px; }
   .product-body { padding: 12px; }

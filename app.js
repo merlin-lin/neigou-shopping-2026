@@ -30,7 +30,7 @@
     meta: $("#catalogMeta"),
     search: $("#searchInput"),
     clearSearch: $("#clearSearch"),
-    filters: $("#categoryFilters"),
+    category: $("#categorySelect"),
     gender: $("#genderSelect"),
     size: $("#sizeSelect"),
     sort: $("#sortSelect"),
@@ -71,6 +71,10 @@
     deleteAddressButton: $("#deleteAddressButton"),
     exportError: $("#exportError"),
     exportButton: $("#exportButton"),
+    exportFallback: $("#exportFallback"),
+    openBrowserButton: $("#openBrowserButton"),
+    shareGeneratedButton: $("#shareGeneratedButton"),
+    copyBrowserLinkButton: $("#copyBrowserLinkButton"),
     privacyNote: $("#privacyNote"),
     orderSuccess: $("#orderSuccess"),
     campaignBanner: $("#campaignBanner"),
@@ -88,6 +92,7 @@
   shippingInputs.forEach((key) => {
     elements[key].value = savedShipping[key] || "";
   });
+  const exportHandoffRestored = restoreExportHandoff();
 
   function shippingValues() {
     return Object.fromEntries(shippingInputs.map((key) => [key, elements[key].value.trim()]));
@@ -201,6 +206,10 @@
       renderFilters();
       applyFilters();
       renderCart();
+      if (exportHandoffRestored) {
+        elements.orderSuccess.textContent = "已从微信恢复清单，请点击导出 Excel。";
+        openCart();
+      }
       const count = catalog.meta?.itemCount ?? state.items.length;
       const variants = catalog.meta?.variantCount ?? state.items.reduce((sum, item) => sum + item.sizes.length, 0);
       elements.meta.textContent = `${count.toLocaleString("zh-CN")} 个颜色款 · ${variants.toLocaleString("zh-CN")} 个可选规格`;
@@ -239,10 +248,8 @@
   function renderFilters() {
     const counts = new Map();
     state.items.forEach((item) => counts.set(item.name, (counts.get(item.name) || 0) + 1));
-    const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 9).map(([name]) => name);
-    elements.filters.innerHTML = ["全部", ...top]
-      .map((name) => `<button class="chip${name === state.category ? " active" : ""}" type="button" data-category="${escapeHtml(name)}">${escapeHtml(name)}</button>`)
-      .join("");
+    const categories = [...counts.keys()].sort((a, b) => a.localeCompare(b, "zh-CN"));
+    elements.category.innerHTML = [`<option value="全部">全部分类</option>`, ...categories.map((name) => `<option value="${escapeHtml(name)}"${name === state.category ? " selected" : ""}>${escapeHtml(name)}</option>`)].join("");
     const genders = [...new Set(state.items.map((item) => item.gender).filter(Boolean))];
     elements.gender.innerHTML = [`<option value="">全部性别</option>`, ...genders.map((gender) => `<option value="${escapeHtml(gender)}"${gender === state.gender ? " selected" : ""}>${escapeHtml(gender)}</option>`)].join("");
     const sizes = [...new Set(state.items.flatMap((item) => item.sizes.map((size) => String(size.size))))].sort((a, b) => a.localeCompare(b, "zh-CN", { numeric: true }));
@@ -561,6 +568,7 @@
             <span>${escapeHtml(line.sku)} · ${line.qty} 件 · ${money(Number(line.price) * Number(line.qty))}</span>
           </div>`).join("")}</div>
         </details>
+        <div class="history-record-actions"><button type="button" data-reexport-id="${escapeHtml(record.id)}">再次导出 Excel</button></div>
       </article>`;
     }).join("");
   }
@@ -634,6 +642,62 @@
   }
 
   let exportLibraryPromise;
+  let pendingDownload = null;
+  let pendingBrowserUrl = "";
+
+  function encodeHandoff(value) {
+    const bytes = new TextEncoder().encode(JSON.stringify(value));
+    let binary = "";
+    bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+    return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+  }
+
+  function decodeHandoff(value) {
+    const base64 = value.replaceAll("-", "+").replaceAll("_", "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
+    const binary = atob(base64);
+    return JSON.parse(new TextDecoder().decode(Uint8Array.from(binary, (character) => character.charCodeAt(0))));
+  }
+
+  function createExportHandoff(shipping, lines) {
+    // shortcut: URL handoff is for personal-sized carts; use server storage if order URLs become too large.
+    const payload = encodeHandoff({
+      v: 1,
+      shipping,
+      lines: lines.map(({ sku, style, name, color, size, price, qty }) => ({ sku, style, name, color, size, price, qty })),
+    });
+    const url = new URL(window.location.href);
+    url.hash = `export=${payload}`;
+    window.history.replaceState(window.history.state, "", url.hash);
+    return url.href;
+  }
+
+  function restoreExportHandoff() {
+    if (!window.location.hash.startsWith("#export=")) return false;
+    try {
+      const payload = decodeHandoff(window.location.hash.slice(8));
+      if (payload?.v !== 1 || !Array.isArray(payload.lines) || !payload.shipping) return false;
+      const restoredCart = {};
+      payload.lines.forEach((line) => {
+        if (!line?.sku || !line?.size || !Number.isFinite(Number(line.qty)) || Number(line.qty) < 1) return;
+        const key = cartKey(String(line.sku), String(line.size));
+        restoredCart[key] = {
+          sku: String(line.sku), style: String(line.style || ""), name: String(line.name || ""), color: String(line.color || ""),
+          size: String(line.size), price: Number(line.price) || 0, qty: Number(line.qty), stock: null, image: "", selected: true,
+        };
+      });
+      if (!Object.keys(restoredCart).length) return false;
+      state.cart = restoredCart;
+      shippingInputs.forEach((key) => { elements[key].value = String(payload.shipping[key] || ""); });
+      saveCart();
+      saveShipping();
+      window.history.replaceState({}, "", `${window.location.pathname}${window.location.search}`);
+      return true;
+    } catch (_) {
+      window.history.replaceState({}, "", `${window.location.pathname}${window.location.search}`);
+      return false;
+    }
+  }
+
   function ensureExportLibrary() {
     if (window.JSZip) return Promise.resolve();
     if (exportLibraryPromise) return exportLibraryPromise;
@@ -650,6 +714,64 @@
       document.head.appendChild(script);
     });
     return exportLibraryPromise;
+  }
+
+  function exportFilename(buyerName) {
+    const date = new Date();
+    const ymd = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
+    return `内购下单表_${buyerName.replace(/[\\/:*?"<>|]/g, "_")}_${ymd}.xlsx`;
+  }
+
+  function clearPendingDownload() {
+    pendingDownload = null;
+    pendingBrowserUrl = "";
+    elements.exportFallback.hidden = true;
+    elements.shareGeneratedButton.hidden = true;
+  }
+
+  function finishCartExport(shipping, lines, selectedKeys) {
+    saveOrderHistoryRecord("excel", shipping, lines);
+    selectedKeys.forEach((key) => { delete state.cart[key]; });
+    saveCart();
+    renderCart();
+    elements.orderSuccess.textContent = "Excel 已导出，本次勾选商品已从购物车移除。";
+    showToast("已导出，勾选商品已清除");
+  }
+
+  async function deliverExcel(blob, filename, handoff, onDelivered) {
+    clearPendingDownload();
+    const androidWechat = /Android/i.test(navigator.userAgent) && /MicroMessenger/i.test(navigator.userAgent);
+    if (!androidWechat) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+      onDelivered();
+      return;
+    }
+    let file = null;
+    if (typeof File === "function" && navigator.share && navigator.canShare) {
+      try {
+        const candidate = new File([blob], filename, { type: blob.type });
+        if (navigator.canShare({ files: [candidate] })) file = candidate;
+      } catch (_) {
+        file = null;
+      }
+    }
+    pendingDownload = { file, onDelivered };
+    pendingBrowserUrl = createExportHandoff(handoff.shipping, handoff.lines);
+    elements.shareGeneratedButton.hidden = !file;
+    elements.exportFallback.hidden = false;
+    if (!elements.historyModal.hidden) {
+      closeHistory(true);
+      openCart();
+    }
+    elements.orderSuccess.textContent = "文件已生成，请优先分享；也可从微信右上角在浏览器打开后继续下载。";
+    elements.openBrowserButton.focus();
   }
 
   async function exportExcel() {
@@ -686,27 +808,45 @@
     try {
       await ensureExportLibrary();
       const blob = await buildXlsx(shipping, lines);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      const date = new Date();
-      const ymd = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
-      link.href = url;
-      link.download = `内购下单表_${shipping.buyerName.replace(/[\\/:*?"<>|]/g, "_")}_${ymd}.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 3000);
-      saveOrderHistoryRecord("excel", shipping, lines);
-      selectedKeys.forEach((key) => { delete state.cart[key]; });
-      saveCart();
-      renderCart();
-      elements.orderSuccess.textContent = "Excel 已导出，本次勾选商品已从购物车移除。";
-      showToast("已导出，勾选商品已清除");
+      await deliverExcel(blob, exportFilename(shipping.buyerName), { shipping, lines }, () => finishCartExport(shipping, lines, selectedKeys));
     } catch (error) {
-      elements.exportError.textContent = `导出失败：${error.message}`;
+      elements.exportError.textContent = error.name === "AbortError" ? "已取消分享，购物车仍然保留。" : `导出失败：${error.message}`;
     } finally {
       elements.exportButton.disabled = false;
       elements.exportButton.textContent = "导出 Excel 选购清单";
+    }
+  }
+
+  async function reexportHistoryRecord(recordId, button) {
+    const record = state.orderHistory.find((item) => item.id === recordId);
+    if (!record?.lines?.length) {
+      showToast("这条记录没有可导出的商品");
+      return;
+    }
+    const shipping = shippingValues();
+    const requiredFields = [
+      ["buyerName", "收件人"], ["buyerPhone", "电话"], ["buyerProvince", "省（直辖市填 0）"],
+      ["buyerCity", "市"], ["buyerDistrict", "区"], ["buyerAddress", "详细地址"],
+    ];
+    const missing = requiredFields.find(([key]) => !shipping[key]);
+    if (missing) {
+      closeHistory(true);
+      openCart();
+      elements.exportError.textContent = `再次导出前，请填写${missing[1]}。`;
+      setTimeout(() => elements[missing[0]].focus(), 0);
+      return;
+    }
+    button.disabled = true;
+    button.textContent = "正在生成…";
+    try {
+      await ensureExportLibrary();
+      const blob = await buildXlsx(shipping, record.lines);
+      await deliverExcel(blob, exportFilename(shipping.buyerName), { shipping, lines: record.lines }, () => showToast("历史清单已再次导出"));
+    } catch (error) {
+      showToast(error.name === "AbortError" ? "已取消分享" : `再次导出失败：${error.message}`);
+    } finally {
+      button.disabled = false;
+      button.textContent = "再次导出 Excel";
     }
   }
 
@@ -871,10 +1011,8 @@
     applyFilters();
     elements.search.focus();
   });
-  elements.filters.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-category]");
-    if (!button) return;
-    state.category = button.dataset.category;
+  elements.category.addEventListener("change", () => {
+    state.category = elements.category.value;
     state.page = 1;
     renderFilters();
     applyFilters();
@@ -961,6 +1099,10 @@
   });
   elements.cartButton.addEventListener("click", openCart);
   elements.historyButton.addEventListener("click", openHistory);
+  elements.historyItems.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-reexport-id]");
+    if (button) reexportHistoryRecord(button.dataset.reexportId, button);
+  });
   elements.mobileCartButton.addEventListener("click", openCart);
   elements.closeCart.addEventListener("click", closeCart);
   elements.closeHistory.addEventListener("click", closeHistory);
@@ -987,6 +1129,51 @@
   elements.saveAddressButton.addEventListener("click", saveCurrentAddress);
   elements.deleteAddressButton.addEventListener("click", deleteSelectedAddress);
   elements.exportButton.addEventListener("click", exportExcel);
+  elements.openBrowserButton.addEventListener("click", () => {
+    if (!pendingBrowserUrl) return;
+    const intent = `intent://navigate?url=${encodeURIComponent(pendingBrowserUrl)}#Intent;scheme=googlechrome;package=com.android.chrome;end`;
+    window.location.href = intent;
+    setTimeout(() => showToast("如果没有跳转，请使用下方分享或复制链接"), 1200);
+  });
+  elements.shareGeneratedButton.addEventListener("click", async () => {
+    const download = pendingDownload;
+    if (!download?.file) return;
+    elements.shareGeneratedButton.disabled = true;
+    try {
+      await navigator.share({ files: [download.file], title: "内购下单表" });
+      if (pendingDownload !== download) return;
+      pendingDownload = null;
+      pendingBrowserUrl = "";
+      download.onDelivered();
+      elements.exportFallback.hidden = true;
+      window.history.replaceState(window.history.state, "", "#cart");
+    } catch (error) {
+      elements.exportError.textContent = error.name === "AbortError" ? "已取消分享，购物车仍然保留。" : `分享失败：${error.message}`;
+    } finally {
+      elements.shareGeneratedButton.disabled = false;
+    }
+  });
+  elements.copyBrowserLinkButton.addEventListener("click", async () => {
+    if (!pendingBrowserUrl) return;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(pendingBrowserUrl);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = pendingBrowserUrl;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        const copied = document.execCommand("copy");
+        textarea.remove();
+        if (!copied) throw new Error("copy failed");
+      }
+      showToast("下载链接已复制，请粘贴到系统浏览器打开");
+    } catch (_) {
+      showToast("复制失败，请从微信右上角选择在浏览器打开");
+    }
+  });
   elements.copyWechatButton.addEventListener("click", copyWechat);
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
